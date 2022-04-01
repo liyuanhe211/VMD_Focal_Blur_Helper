@@ -1,0 +1,6 @@
+# Created by .ignore support plugin (hsz.mobi)
+# IntelliJ project files
+.idea
+__pycache__/
+/VMD_Pov-Ray_Blur - Build.7z
+Obsolete/
