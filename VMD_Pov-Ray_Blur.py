@@ -3,17 +3,9 @@ __author__ = 'LiYuanhe'
 
 
 import os
-from PyQt5.Qt import QApplication
-# if QApplication.desktop().screenGeometry().width()>2000:
-os.environ["QT_SCALE_FACTOR"] = "0.9"
-from PyQt5 import Qt
-QApplication.setAttribute(Qt.Qt.AA_EnableHighDpiScaling, True)
-
-
 import sys
 
 from Python_Lib.My_Lib_PyQt import *
-from PyQt5 import Qt
 
 if not Qt.QApplication.instance():
     Application = Qt.QApplication(sys.argv)

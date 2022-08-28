@@ -10,8 +10,6 @@ import re
 import time
 import random
 
-sys.path.append('D:\My_Program\Python_Lib')
-sys.path.append('E:\My_Program\Python_Lib')
 
 # ALL Numbers in SI if not mentioned
 R = 8.3144648
@@ -37,15 +35,10 @@ amu__kg = 1.660539040E-27
 month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 
-def listdir(filename: str):
-    # listdir of a file or a folder, return a list, contain the absolute path of the
-    if os.path.isfile(filename):
-        path = filename_class(filename[0]).path
-        return [os.path.join(path, x) for x in os.listdir(path)]
-    elif os.path.isdir(filename):
-        path = filename
-        return [os.path.join(path, x) for x in os.listdir(path)]
+def file_is_descendant(file,parent):
+    from pathlib import Path
 
+    return Path(parent) in Path(file).resolve().parents
 
 def nCr(n, r):
     f = math.factorial
@@ -53,9 +46,7 @@ def nCr(n, r):
 
 
 def reverse(string):
-    l = list(string)
-    l.reverse()
-    return "".join(l)
+    return str(string[::-1])
 
 
 def rreplace(string, old, new, count=None):
@@ -70,8 +61,12 @@ def rreplace(string, old, new, count=None):
 
 def open_explorer_and_select(file_path):
     import subprocess
-    open_explorer_command = r'explorer /select,"' + str(file_path).replace('/', '\\') + '"'
-    subprocess.Popen(open_explorer_command)
+    import platform
+    if platform.system()=='Windows':
+        open_explorer_command = r'explorer /select,"' + str(file_path).replace('/', '\\') + '"'
+        subprocess.Popen(open_explorer_command)
+    else:
+        print("Not Windows system. Please check the file by yourself:",file_path)
 
 def merge_dicts(*dict_args):
     """
@@ -84,23 +79,95 @@ def merge_dicts(*dict_args):
     return result
 
 
+def locate_matching_parenthesis(input_str: str, char1="(", char2=")"):
+    """
+    Recognize the first pairs of top level parenthesis in the input_str
+    Args:
+        input_str:
+        char1:
+        char2:
+
+    Returns:
+        a tuple of two numbers, start and finish
+        if nothing is found, return None
+    """
+    start = input_str.find(char1)
+    status = 0
+    for count, i in enumerate(input_str[start:]):
+        if i == char1:
+            status += 1
+        if i == char2:
+            status -= 1
+        if not status:
+            return (start, count + start)
+
+
+
+class MyException(Exception):
+    '''你定义的异常类。'''
+
+    def __init__(self, explanation):
+        Exception.__init__(self)
+        print(explanation)
+
+
 def list_or(input_list):
     # input [a,b,c] return a or b or c
-    ret = False
-    for i in input_list:
-        ret = ret or i
-    return ret
+    any(input_list)
 
 
 def list_and(input_list):
     # input [a,b,c] return a and b and c
-    ret = True
-    for i in input_list:
-        ret = ret and i
+    all(input_list)
+
+
+
+
+def get_ipv6_public_addresses_on_windows():
+    '''
+
+    :return: a list of ipv6 addresses
+    '''
+    #https://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses
+    ipv6_address_regexp = r"(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))"
+
+    ret = []
+    import subprocess
+    a = subprocess.check_output('ipconfig').decode('gbk').lower()
+    for i in a.splitlines():
+        if 'ipv6' in i.lower() and "temporary" not in i.lower() and "临时" not in i.lower() and "本地" not in i.lower() and "local" not in i.lower() :
+            re_ret = re.findall(ipv6_address_regexp,i)
+            if re_ret:
+                address = re_ret[0][0]
+                if not address.startswith('fe'):
+                    ret.append(address)
     return ret
 
 
-import os
+def get_ipv6_public_addresses_on_linux():
+    '''
+
+    :return: a list of ipv6 addresses
+    '''
+    #https://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses
+    ipv6_address_regexp = r"(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))"
+
+    ret = []
+    import subprocess
+    a = subprocess.check_output('ifconfig').decode('gbk').lower()
+    for i in a.splitlines():
+        if 'inet6 addr' in i.lower():
+            re_ret = re.findall(ipv6_address_regexp,i)
+            if re_ret:
+                address = re_ret[0][0]
+                if address.startswith('2'):
+                    ret.append(address)
+    return ret
+
+
+def get_ipv6_address_from_external():
+    import requests
+    return requests.get("https://v6.ident.me/", verify=False).text
 
 
 def addToClipBoard(text):
@@ -110,6 +177,53 @@ def addToClipBoard(text):
 #
 # def rreplace(original_string, search, replace):
 #     return replace.join(original_string.rsplit(search, 1))
+
+
+def walk_all_files(parent=".",filter="*.*",return_pathlib_obj = False):
+    """
+    os.walk() wrap, return list of str for the full path
+    :param return_pathlib_obj: Whether to return a Path object, if False, return str
+    """
+    #print("Walking folder:",os.path.realpath(parent))
+    import pathlib
+    parent_folder = pathlib.Path(parent)
+    if return_pathlib_obj:
+        files = [x.resolve() for x in parent_folder.rglob(filter)]
+    else:
+        files = [str(x.resolve()) for x in parent_folder.rglob(filter)]
+    return files
+
+
+def list_current_folder(parent=".",filter="*",return_pathlib_obj = False):
+    """
+    return list of str for the full path
+    :param return_pathlib_obj: Whether to return a Path object, if False, return str
+    """
+    import pathlib
+    parent_folder = pathlib.Path(parent)
+    if return_pathlib_obj:
+        files = [x.resolve() for x in parent_folder.glob(filter)]
+    else:
+        files = [str(x.resolve()) for x in parent_folder.glob(filter)]
+    # print(files)
+    return files
+
+def file_is_busy(filepath):
+    '''
+    Check whether a file is being used
+    If it's not being used, or it doesn't exist, return False
+    Else return True
+    If any other exceptions occor, raise exception
+    '''
+    import os
+    if os.path.isfile(filepath):
+        try:
+            os.rename(filepath, filepath)
+            return False
+        except OSError as e:
+            return True
+    else:
+        return False
 
 
 class filename_class:
@@ -240,7 +354,8 @@ def split_list(input_list: list, separator, lower_case_match=False, include_sepa
     '''
 
     :param input_list:
-    :param separator: a separator, either a str or function. If it's a function, it should take a str as input, and return
+    :param separator: a separator, either a str or function.
+    If it's a function, it should take a str as input, and return
     :param lower_case_match:
     :param include_separator:
     :param include_empty:
@@ -348,6 +463,7 @@ def get_input_with_while_cycle(break_condition=lambda x: not x.strip(), input_pr
     return ret
 
 
+
 def PolygonArea(corners):
     n = len(corners)  # of corners
     area = 0.0
@@ -411,6 +527,19 @@ def get_unused_filename(input_filename, replace_hash=True, use_proper_filename=T
         return ret
 
 
+def average(data,convert_to_arith_function = lambda x:x, convert_back_function = lambda x:x):
+    '''
+
+    :param data:
+    :param convert_to_arith_function: a function that convert the data to a number to be subjected to arithmetic average
+    :param convert_back_function: a reverse function of convert_to_arith_function
+    :return:
+    '''
+
+    data_to_arith = [convert_to_arith_function(x) for x in data]
+    arith_average = sum(data_to_arith)/len(data_to_arith)
+    return convert_back_function(arith_average)
+
 optimization_timer_u3yc24t04389y09sryc09384yn098 = 0 # this wired name is to avoid collision with other files
 def optimization_timer(position_label=""):
     '''
@@ -426,6 +555,14 @@ def optimization_timer(position_label=""):
         delta = time.time() - optimization_timer_u3yc24t04389y09sryc09384yn098
         optimization_timer_u3yc24t04389y09sryc09384yn098 = time.time()
         print("————————————",position_label,int(delta*1000))
+
+
+def readable_timestamp(timestamp=0):
+    from datetime import datetime
+    if not timestamp:
+        return datetime.now().strftime("%Y%m%d%H%M%S")
+    else:
+        return datetime.fromtimestamp(timestamp).strftime("%Y%m%d%H%M%S")
 
 
 def remove_duplicate(input_list: list, access_function=None):
@@ -560,10 +697,19 @@ def is_float(input_str):
         return False
 
 
+def int_able(input_str):
+    try:
+        int(input_str)
+        return True
+    except Exception as e:
+        return False
+
 def is_int(input_str):
     if not is_float(input_str):
         return False
     num = float(input_str)
+    # print(int(input_str))
+    # print(num)
     if int(input_str) == num:
         return True
     else:
@@ -656,13 +802,26 @@ def find_within_braket(input_str, get_last_one=False):
     return ret
 
 
+def strip_sequence_from_str(input_string:str,to_strip):
+    """
+    "abcabca","ab" --> “cabca"
+    "abcabca","abc" --> “a"
+    """
+
+    while input_string.startswith(to_strip):
+        input_string = input_string[len(to_strip):]
+
+    return input_string
+
+
+
 def phrase_range_selection(input_str, by_index=True):
-    '''
+    """
     Input a range like 1,5,7-9; output a list by index [0,4,6,7,8]; if not index [1,5,7,8,9]
     :param input_str:
     :param by_index: the index will be 1 less than what's inputed
     :return:
-    '''
+    """
 
     if not input_str.strip():
         return []
@@ -758,3 +917,4 @@ def mytimeout(timeout):
         return wrapper
 
     return deco
+

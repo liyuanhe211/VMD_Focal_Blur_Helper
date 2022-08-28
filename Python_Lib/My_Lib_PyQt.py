@@ -2,22 +2,23 @@
 __author__ = 'LiYuanhe'
 #
 import os
-from PyQt5.Qt import QApplication
-# if QApplication.desktop().screenGeometry().width()>2000:
-os.environ["QT_SCALE_FACTOR"] = "0.85"
 from PyQt5 import Qt
 from PyQt5 import uic
-
-QApplication.setAttribute(Qt.Qt.AA_EnableHighDpiScaling, True)
+from PyQt5.Qt import QApplication
+import platform
+if platform.system()=='Windows':
+    os.environ["QT_SCALE_FACTOR"] = "0.85"
+    QApplication.setAttribute(Qt.Qt.AA_EnableHighDpiScaling, True)
 
 import matplotlib
 
 matplotlib.use("Qt5Agg")
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as MpFigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as MpNavToolBar
-import matplotlib.pyplot as MpPyplot
+import matplotlib.pyplot as pyplot
+# legacy support
+MpPyplot = pyplot
 import matplotlib.patches as patches
-from .adjustText import *
 
 import sys
 import os
@@ -28,7 +29,10 @@ import re
 import time
 import random
 
-from .My_Lib_Stock import *
+import pathlib
+Python_Lib_path = str(pathlib.Path(__file__).parent.resolve())
+sys.path.append(Python_Lib_path)
+from My_Lib_Stock import *
 
 
 def get_open_directories():
@@ -342,7 +346,7 @@ def pyqt_ui_compile(filename):
         ui_File_Compile = open(py_file, 'w')
         uic.compileUi(ui_filename, ui_File_Compile)
         ui_File_Compile.close()
-        with open(py_file, encoding='ANSI') as ui_File_Compile_object:
+        with open(py_file, encoding='gbk') as ui_File_Compile_object:
             ui_File_Compile_content = ui_File_Compile_object.read()
         with open(py_file, 'w', encoding='utf-8') as ui_File_Compile_object:
             ui_File_Compile_object.write(ui_File_Compile_content)
